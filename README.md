@@ -2,15 +2,15 @@
 
 **Douglas Antonio · Projeto de portfólio em automação de testes web**
 
-Neste projeto, construo uma suíte Cypress para o **Mark L**, um gerenciador de tarefas web. Comecei pelo caminho que um usuário percorre para criar uma tarefa, desde a abertura da aplicação até o envio do formulário. A cada etapa do curso, acrescento cenários e aprofundo as verificações dos fluxos que já automatizei.
+Neste projeto, construo uma suíte Cypress para o **Mark L**, um gerenciador de tarefas web. Comecei pela abertura da página inicial e pelo envio do formulário de tarefas. Nesta etapa, integrei a API do Mark L ao teste para controlar os dados antes de interagir com a interface. A cada etapa do curso, acrescento cenários e aprofundo as verificações dos fluxos que já automatizei.
 
-**Stack** · JavaScript · Cypress 16 · Faker 10 · Node.js · Yarn 4
+**Stack** · JavaScript · Cypress 16 · Node.js · Yarn 4
 
 ## Como apliquei QA neste projeto
 
 - **Comecei por uma verificação de entrada.** Antes de testar as tarefas, fiz o navegador abrir o Mark L e validar o título exato da página. Isso dá um ponto de partida simples para investigar falhas de acesso à aplicação.
-- **Automatizei um fluxo central pelo navegador.** O cenário de tarefas localiza o campo pelo seletor `#newTask` e aciona o botão pelo texto `Create`, como ele aparece na interface.
-- **Gerei dados durante o teste.** Usei `faker.music.songName()` como fonte de nomes para as tarefas. Assim consigo exercitar o mesmo formulário com entradas variadas sem depender de um título fixo no código.
+- **Preparei a massa de teste pela API.** Uso `cy.request()` para remover, pelo nome, um possível registro anterior em `DELETE /helper/tasks`. O teste confirma o `204 No Content` antes de abrir a página. Assim, posso enviar o mesmo título em execuções consecutivas sem esbarrar no registro anterior.
+- **Automatizei o envio pelo navegador.** O cenário preenche `#newTask` com o mesmo título usado na preparação e aciona o botão `Create`, como ele aparece na interface.
 - **Organizei a suíte por contexto.** A página inicial e as tarefas têm specs próprias. Posso executar cada uma separadamente e acrescentar novos cenários ao fluxo correspondente.
 
 ## Cobertura atual
@@ -18,17 +18,17 @@ Neste projeto, construo uma suíte Cypress para o **Mark L**, um gerenciador de 
 | Cenário | O que a spec cobre | Código |
 | --- | --- | --- |
 | Abertura do Mark L | Acessa a aplicação e confirma o título `Gerencie suas tarefas com Mark L`. | [home.cy.js](cypress/e2e/home.cy.js) |
-| Envio de uma tarefa | Gera um nome, preenche o formulário e clica em `Create`. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
+| Envio de uma tarefa | Recebe `204` da rota de limpeza e envia `ler um livro de node.js` pelo formulário. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
 
-Os dois cenários passaram em uma execução local com Cypress 16.3.0, o Mark L e um banco temporário.
+Os dois cenários passaram em duas execuções consecutivas no mesmo banco temporário com Cypress 16.3.0. Em cada rodada, conferi pela API que havia exatamente uma tarefa com o título esperado e que o segundo envio criou um novo registro.
 
 ## Trilha de estudo
 
-O repositório acompanha minha prática no **Cypress eXpress**, ministrado por **Fernando Papito**. As aulas iniciais de testes de ponta a ponta passam por campos de texto, botões e dados dinâmicos com Faker. Esses tópicos já aparecem no cenário de tarefas. [Ementa oficial na Udemy](https://www.udemy.com/course/cypress-express/)
+O repositório acompanha minha prática no **Cypress eXpress**, ministrado por **Fernando Papito**. Nas primeiras aulas, pratiquei a interação com campos e botões e gerei nomes com Faker. A etapa atual aplica a aula de consumo da API REST para preparar os dados de teste. [Ementa oficial na Udemy](https://www.udemy.com/course/cypress-express/)
 
 Conforme avanço no curso, quero aplicar os próximos tópicos à suíte.
 
-- **Resultado do cadastro e preparação de dados.** Conferir a tarefa na lista e usar a API do Mark L para preparar e limpar dados de teste.
+- **Resultado do cadastro.** Verificar na interface se a tarefa enviada aparece na lista e acrescentar cenários para as validações do formulário.
 - **Independência e reuso.** Evoluir os cenários para que possam rodar isoladamente e extrair comandos reutilizáveis onde houver repetição.
 - **Execução e evidências.** Experimentar fixtures, diferentes tamanhos de tela e navegadores, além de registrar falhas com capturas e explorar os relatórios abordados no curso.
 
@@ -38,7 +38,7 @@ Conforme avanço no curso, quero aplicar os próximos tópicos à suíte.
 
 Baixe o pacote `mark-dev-build-r2` no material do curso. Para a API e a interface desse pacote, use **Node.js 18**.
 
-No diretório `api` do Mark L, instale as dependências, prepare o banco local e inicie a API na porta `3333`.
+No diretório `api` de uma cópia do Mark L dedicada aos testes, instale as dependências, prepare o banco local e inicie a API na porta `3333`. Mantenha a API em modo de desenvolvimento para disponibilizar a rota que remove a tarefa pelo nome.
 
 ```sh
 npm ci
