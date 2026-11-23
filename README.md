@@ -2,34 +2,34 @@
 
 **Douglas Antonio · Projeto de portfólio em automação de testes web**
 
-Neste projeto, construo uma suíte Cypress para o **Mark L**, um gerenciador de tarefas web. Comecei pela abertura da página inicial e pelo envio do formulário de tarefas. Nesta etapa, integrei a API do Mark L ao teste para controlar os dados antes de interagir com a interface. A cada etapa do curso, acrescento cenários e aprofundo as verificações dos fluxos que já automatizei.
+Neste projeto, construo uma suíte Cypress para o **Mark L**, um gerenciador de tarefas web. Nesta etapa, evoluí o teste de cadastro para verificar o resultado que o usuário vê. A suíte confirma que uma tarefa nova aparece na lista e que a tentativa de cadastrar um título repetido gera o aviso esperado.
 
 **Stack** · JavaScript · Cypress 16 · Node.js · Yarn 4
 
 ## Como apliquei QA neste projeto
 
-- **Comecei por uma verificação de entrada.** Antes de testar as tarefas, fiz o navegador abrir o Mark L e validar o título exato da página. Isso dá um ponto de partida simples para investigar falhas de acesso à aplicação.
-- **Preparei a massa de teste pela API.** Uso `cy.request()` para remover, pelo nome, um possível registro anterior em `DELETE /helper/tasks`. O teste confirma o `204 No Content` antes de abrir a página. Assim, posso enviar o mesmo título em execuções consecutivas sem esbarrar no registro anterior.
-- **Automatizei o envio pelo navegador.** O cenário preenche `#newTask` com o mesmo título usado na preparação e aciona o botão `Create`, como ele aparece na interface.
-- **Organizei a suíte por contexto.** A página inicial e as tarefas têm specs próprias. Posso executar cada uma separadamente e acrescentar novos cenários ao fluxo correspondente.
+- **Controlei o estado inicial pela API.** Cada cenário de tarefas usa `cy.request()` para remover um possível registro pelo nome em `DELETE /helper/tasks` e confirma `204 No Content`. Os cenários usam títulos distintos para preparar os dados de cada caso.
+- **Montei o cenário de duplicidade antes de abrir a página.** Crio uma tarefa pendente em `POST /tasks` e confirmo `201 Created`. Em seguida, tento cadastrar o mesmo título pelo formulário para exercitar a regra de negócio pelo navegador.
+- **Organizei a suíte por contexto.** A página inicial tem uma verificação própria de acesso. Na spec de tarefas, mantenho um cenário para o cadastro válido e outro para a rejeição de um título repetido.
 
 ## Cobertura atual
 
 | Cenário | O que a spec cobre | Código |
 | --- | --- | --- |
 | Abertura do Mark L | Acessa a aplicação e confirma o título `Gerencie suas tarefas com Mark L`. | [home.cy.js](cypress/e2e/home.cy.js) |
-| Envio de uma tarefa | Recebe `204` da rota de limpeza e envia `ler um livro de node.js` pelo formulário. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
+| Cadastro de uma tarefa | Envia `ler um livro de node.js` pelo formulário e confirma que a tarefa aparece na lista. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
+| Rejeição de tarefa duplicada | Prepara `Estudar JavaScript` pela API, repete o título no formulário e confere o alerta visível com o texto exato `Task already exists!`. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
 
-Os dois cenários passaram em duas execuções consecutivas no mesmo banco temporário com Cypress 16.3.0. Em cada rodada, conferi pela API que havia exatamente uma tarefa com o título esperado e que o segundo envio criou um novo registro.
+Os três cenários passaram em duas execuções consecutivas no mesmo banco temporário com Cypress 16.3.0. Após cada rodada, uma consulta à API confirmou um único registro para cada título esperado.
 
 ## Trilha de estudo
 
-O repositório acompanha minha prática no **Cypress eXpress**, ministrado por **Fernando Papito**. Nas primeiras aulas, pratiquei a interação com campos e botões e gerei nomes com Faker. A etapa atual aplica a aula de consumo da API REST para preparar os dados de teste. [Ementa oficial na Udemy](https://www.udemy.com/course/cypress-express/)
+O repositório acompanha minha prática no **Cypress eXpress**, ministrado por **Fernando Papito**. Comecei com campos, botões e dados dinâmicos com Faker. Depois, incorporei o consumo da API REST para preparar os testes e avancei para a validação do comportamento esperado na interface. [Ementa oficial na Udemy](https://www.udemy.com/course/cypress-express/)
 
 Conforme avanço no curso, quero aplicar os próximos tópicos à suíte.
 
-- **Resultado do cadastro.** Verificar na interface se a tarefa enviada aparece na lista e acrescentar cenários para as validações do formulário.
-- **Independência e reuso.** Evoluir os cenários para que possam rodar isoladamente e extrair comandos reutilizáveis onde houver repetição.
+- **Validações do formulário.** Ampliar os cenários de erro e conferir as mensagens exibidas ao usuário.
+- **Reuso.** Extrair comandos reutilizáveis para preparar as tarefas pela API.
 - **Execução e evidências.** Experimentar fixtures, diferentes tamanhos de tela e navegadores, além de registrar falhas com capturas e explorar os relatórios abordados no curso.
 
 ## Como executar
