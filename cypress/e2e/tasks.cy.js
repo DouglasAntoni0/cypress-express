@@ -1,50 +1,52 @@
 import { faker } from '@faker-js/faker'
 
 describe('tarefas', () => {
-  it('deve cadastras uma nova tarefa', () => {
+  context('cadastro', () => {
+    it('deve cadastras uma nova tarefa', () => {
+      const taskName = 'ler um livro de node.js'
 
-    cy.request({
-      url: 'http://localhost:3333/helper/tasks',
-      method: 'DELETE',
-      body: { name: 'ler um livro de node.js' }
+      cy.removeTaskByName(taskName)
 
-    }).then(response => {
-      expect(response.status).to.eq(204)
+      cy.createTask(taskName)
+
+      cy.contains('main div p', taskName).should('be.visible')
     })
 
-    cy.visit('http://localhost:3000')
+    it('não deve permitir tarefa duplicada', () => {
+      const task = {
+        name: 'Estudar JavaScript',
+        is_done: false
+      }
 
-    cy.get('#newTask').type('ler um livro de node.js')
-    cy.contains('button', 'Create').click()
+      cy.removeTaskByName(task.name)
+      cy.postTask(task)
 
-    cy.contains('main div p', 'ler um livro de node.js').should('be.visible')
+      cy.createTask(task.name)
+
+      cy.get('.swal2-html-container').should('be.visible').should('have.text', 'Task already exists!')
+    })
+
+    it('campo obrigatorio', () => {
+      cy.createTask()
+
+      cy.isRequired('This is a required field')
+    })
   })
 
-  it('não deve permitir tarefa duplicada', () => {
+  context('atualização', () => {
+    it('deve concluir uma tarefa', () => {
+      const task = {
+        name: 'Pagar algumas contas',
+        is_done: false
+      }
 
-    cy.request({
-      url: 'http://localhost:3333/helper/tasks',
-      method: 'DELETE',
-      body: { name: 'Estudar JavaScript' }
+      cy.removeTaskByName(task.name)
+      cy.postTask(task)
 
-    }).then(response => {
-      expect(response.status).to.eq(204)
+      cy.visit('http://localhost:3000')
+      cy.contains('p', task.name).parent().find('button[class*=ItemToggle]').click()
+
+      cy.contains('p', task.name).should('have.css', 'text-decoration-line', 'line-through')
     })
-
-    cy.request({
-      url: 'http://localhost:3333/tasks',
-      method: 'POST',
-      body: { name: 'Estudar JavaScript', is_done: false }
-    }).then(response => {
-      expect(response.status).to.eq(201)
-    })
-
-    cy.visit('http://localhost:3000')
-
-    cy.get('#newTask').type('Estudar JavaScript')
-    cy.contains('button', 'Create').click()
-
-    cy.get('.swal2-html-container').should('be.visible').should('have.text', 'Task already exists!')
-
   })
 })

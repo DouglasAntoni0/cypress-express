@@ -2,35 +2,39 @@
 
 **Douglas Antonio · Projeto de portfólio em automação de testes web**
 
-Neste projeto, construo uma suíte Cypress para o **Mark L**, um gerenciador de tarefas web. Nesta etapa, evoluí o teste de cadastro para verificar o resultado que o usuário vê. A suíte confirma que uma tarefa nova aparece na lista e que a tentativa de cadastrar um título repetido gera o aviso esperado.
+Neste projeto, construo uma suíte Cypress para o **Mark L**, um gerenciador de tarefas web. Nesta etapa, extraí comandos customizados para reaproveitar ações de interface e chamadas à API, validei o campo obrigatório no formulário e adicionei o fluxo de conclusão de tarefas.
 
 **Stack** · JavaScript · Cypress 16 · Node.js · Yarn 4
 
 ## Como apliquei QA neste projeto
 
-- **Controlei o estado inicial pela API.** Cada cenário de tarefas usa `cy.request()` para remover um possível registro pelo nome em `DELETE /helper/tasks` e confirma `204 No Content`. Os cenários usam títulos distintos para preparar os dados de cada caso.
-- **Montei o cenário de duplicidade antes de abrir a página.** Crio uma tarefa pendente em `POST /tasks` e confirmo `201 Created`. Em seguida, tento cadastrar o mesmo título pelo formulário para exercitar a regra de negócio pelo navegador.
-- **Organizei a suíte por contexto.** A página inicial tem uma verificação própria de acesso. Na spec de tarefas, mantenho um cenário para o cadastro válido e outro para a rejeição de um título repetido.
+- **Controlei o estado inicial pela API.** Os cenários que dependem de registros prévios usam `cy.removeTaskByName()` (`DELETE /helper/tasks` com `204 No Content`) e `cy.postTask()` (`POST /tasks` com `201 Created`) para limpar resíduos e preparar tarefas pendentes antes de abrir o navegador, com títulos distintos por caso.
+- **Centralizei ações recorrentes em Custom Commands.** Extraí em [commands.js](cypress/support/commands.js) os comandos `createTask`, `isRequired`, `removeTaskByName` e `postTask`, reduzindo repetição na spec e concentrando seletores como `#newTask` (com alias `@inputTask`) em um único ponto.
+- **Validei restrições nativas e regras de negócio no cadastro.** Além de conferir o alerta `Task already exists!` ao repetir um título já cadastrado pela API, exercito o envio vazio e leio a propriedade nativa `validationMessage` do campo para confirmar `This is a required field`.
+- **Verifiquei a conclusão da tarefa pela interface.** Após preparar uma tarefa pendente pela API, localizo o item na lista pelo texto, aciono o botão de alternância (`button[class*=ItemToggle]`) a partir do elemento pai e confirmo a aplicação do estilo `text-decoration-line: line-through`.
+- **Organizei a suíte por contexto.** A página inicial mantém uma spec própria de disponibilidade em [home.cy.js](cypress/e2e/home.cy.js), enquanto [tasks.cy.js](cypress/e2e/tasks.cy.js) agrupa os cenários em `context('cadastro')` e `context('atualização')`.
 
 ## Cobertura atual
 
 | Cenário | O que a spec cobre | Código |
 | --- | --- | --- |
 | Abertura do Mark L | Acessa a aplicação e confirma o título `Gerencie suas tarefas com Mark L`. | [home.cy.js](cypress/e2e/home.cy.js) |
-| Cadastro de uma tarefa | Envia `ler um livro de node.js` pelo formulário e confirma que a tarefa aparece na lista. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
+| Cadastro de uma tarefa | Limpa eventual registro pela API, envia `ler um livro de node.js` pelo formulário e confirma que a tarefa aparece visível na lista. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
 | Rejeição de tarefa duplicada | Prepara `Estudar JavaScript` pela API, repete o título no formulário e confere o alerta visível com o texto exato `Task already exists!`. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
+| Campo obrigatório no cadastro | Submete o formulário sem preencher o nome e valida na propriedade `validationMessage` do campo o texto `This is a required field`. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
+| Conclusão de uma tarefa | Prepara `Pagar algumas contas` pela API, aciona o botão de conclusão do item na lista e confirma o estilo `line-through` no texto. | [tasks.cy.js](cypress/e2e/tasks.cy.js) |
 
-Os três cenários passaram em duas execuções consecutivas no mesmo banco temporário com Cypress 16.3.0. Após cada rodada, uma consulta à API confirmou um único registro para cada título esperado.
+Os comandos reutilizáveis de preparação pela API (`removeTaskByName` e `postTask`) e de interação e validação na interface (`createTask` e `isRequired`) ficam concentrados em [commands.js](cypress/support/commands.js).
 
 ## Trilha de estudo
 
-O repositório acompanha minha prática no **Cypress eXpress**, ministrado por **Fernando Papito**. Comecei com campos, botões e dados dinâmicos com Faker. Depois, incorporei o consumo da API REST para preparar os testes e avancei para a validação do comportamento esperado na interface. [Ementa oficial na Udemy](https://www.udemy.com/course/cypress-express/)
+O repositório acompanha minha prática no **Cypress eXpress**, ministrado por **Fernando Papito**. Comecei com campos, botões e dados dinâmicos com Faker, incorporei o consumo da API REST para preparar os testes e evoluí a suíte com Custom Commands, validação de campo obrigatório e conclusão de tarefas na lista. [Ementa oficial na Udemy](https://www.udemy.com/course/cypress-express/)
 
 Conforme avanço no curso, quero aplicar os próximos tópicos à suíte.
 
-- **Validações do formulário.** Ampliar os cenários de erro e conferir as mensagens exibidas ao usuário.
-- **Reuso.** Extrair comandos reutilizáveis para preparar as tarefas pela API.
-- **Execução e evidências.** Experimentar fixtures, diferentes tamanhos de tela e navegadores, além de registrar falhas com capturas e explorar os relatórios abordados no curso.
+- **Exclusão de tarefas.** Cobrir a remoção de itens pela interface e confirmar que deixam de aparecer na lista.
+- **Massa de dados e configuração.** Explorar fixtures JSON para organizar dados de teste e centralizar URLs em variáveis de configuração do Cypress (`baseUrl` e `env`).
+- **Execução e evidências.** Testar diferentes tamanhos de tela (`viewport`) e navegadores, além de registrar falhas com capturas e explorar os relatórios abordados no curso.
 
 ## Como executar
 
